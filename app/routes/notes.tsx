@@ -16,6 +16,9 @@ export default function NotesPage() {
   const data = useLoaderData<typeof loader>();
   const user = useUser();
 
+  console.log("data", data);
+  console.log("user", user);
+
   return (
     <div className="flex h-full min-h-screen flex-col">
       <header className="flex items-center justify-between bg-slate-800 p-4 text-white">
@@ -62,9 +65,24 @@ export default function NotesPage() {
         </div>
 
         <div className="flex-1 p-6">
-          <Outlet />
+          <Layout>
+            <Outlet />
+          </Layout>
         </div>
       </main>
     </div>
+  );
+}
+
+function Layout({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <nav className="px-10 pt-5">
+        <Link to="/" prefetch="intent" className="text-2xl font-semibold">
+          CLICK ME
+        </Link>
+      </nav>
+      <main>{children}</main>
+    </>
   );
 }

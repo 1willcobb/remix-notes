@@ -19,6 +19,9 @@ plugin-remix
   src plugin-remix.js
 
 @static
+folder public
+bucket my-test-bucket
+
 
 @tables
 user

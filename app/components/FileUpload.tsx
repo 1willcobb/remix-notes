@@ -73,9 +73,12 @@ export default function FileUpload() {
 
 // https://2s6bzrkd69.execute-api.us-west-2.amazonaws.com/ `http://localhost:3333/api/uploads-url`
 
+
+const apiUrl = `http://localhost:3333/api/uploads-url`;
+
     try {
       // Get the presigned URL from the API
-      const response = await axios.get(`https://2s6bzrkd69.execute-api.us-west-2.amazonaws.com/api/uploads-url`, { 
+      const response = await axios.get(`${apiUrl}`, { 
         params: {
           filename: file.name,
           contentType: file.type,

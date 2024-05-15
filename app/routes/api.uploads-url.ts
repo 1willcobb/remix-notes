@@ -1,7 +1,8 @@
-import { json } from "@remix-run/node";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { LoaderFunctionArgs, json } from "@remix-run/node";
 import invariant from "tiny-invariant";
+
 
 // Configure the S3 client
 const s3Client = new S3Client({
@@ -12,7 +13,7 @@ const s3Client = new S3Client({
   },
 });
 
-export const loader = async ({ request }) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Parse the filename and content type from the request URL
   const url = new URL(request.url);
   const filename = url.searchParams.get("filename");

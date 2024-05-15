@@ -2,11 +2,20 @@ import { Link } from "@remix-run/react";
 
 export default function NoteIndexPage() {
   return (
-    <p>
-      No note selected. Select a note on the left, or{" "}
-      <Link to="new" className="text-blue-500 underline">
-        create a new note.
-      </Link>
-    </p>
+    <div>
+      <p>
+        No note selected. Select a note on the left, or{" "}
+        <Link to="new" className="text-blue-500 underline">
+          create a new note.
+        </Link>
+      </p>
+      <video width="480" height="270" controls>
+        <source
+          src="https://d3mt0suz5yizkp.cloudfront.net/Devena_Testimonial_30sec.mp4"
+          type="video/mp4"
+        />
+        Your browser does not support the video tag.
+      </video>
+    </div>
   );
 }

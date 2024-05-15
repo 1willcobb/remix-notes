@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";

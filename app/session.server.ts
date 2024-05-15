@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import invariant from "tiny-invariant";
 

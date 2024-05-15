@@ -16,8 +16,8 @@ export default function NotesPage() {
   const data = useLoaderData<typeof loader>();
   const user = useUser();
 
-  console.log("data", data);
-  console.log("user", user);
+  // console.log("data", data);
+  // console.log("user", user);
 
   return (
     <div className="flex h-full min-h-screen flex-col">
@@ -40,6 +40,12 @@ export default function NotesPage() {
         <div className="h-full w-80 border-r bg-gray-50">
           <Link to="new" className="block p-4 text-xl text-blue-500">
             + New Note
+          </Link>
+          <Link to="newish" className="block p-4 text-xl text-blue-500">
+            + Chunked
+          </Link>
+          <Link to="signedurl" className="block p-4 text-xl text-blue-500">
+            + Signed URL
           </Link>
 
           <hr />
@@ -77,11 +83,6 @@ export default function NotesPage() {
 function Layout({ children }: { children: ReactNode }) {
   return (
     <>
-      <nav className="px-10 pt-5">
-        <Link to="/" prefetch="intent" className="text-2xl font-semibold">
-          CLICK ME
-        </Link>
-      </nav>
       <main>{children}</main>
     </>
   );

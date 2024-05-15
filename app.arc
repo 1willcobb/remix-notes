@@ -20,7 +20,7 @@ plugin-remix
 
 @static
 folder public
-bucket my-test-bucket
+bucket my-remix-test-bucket
 
 
 @tables

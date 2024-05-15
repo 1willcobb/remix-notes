@@ -1,21 +1,7 @@
-
 import arc from "@architect/functions";
 import { createId } from "@paralleldrive/cuid2";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 
-
-// import axios from 'axios';
-import { S3Client } from "@aws-sdk/client-s3";
-
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-
+import { User } from "./user.server";
 
 
 export interface Note {
@@ -23,7 +9,6 @@ export interface Note {
   userId: User["id"];
   title: string;
   body: string;
-  videoUrl?: string;
 }
 
 interface NoteItem {
@@ -33,20 +18,6 @@ interface NoteItem {
 
 const skToId = (sk: NoteItem["sk"]): Note["id"] => sk.replace(/^note#/, "");
 const idToSk = (id: Note["id"]): NoteItem["sk"] => `note#${id}`;
-
-export async function uploadVideo(fileBuffer: ArrayBuffer, fileName: string) {
-  const command = new PutObjectCommand({
-    Bucket: process.env.BUCKET_NAME,
-    Key: fileName,
-    Body: fileBuffer,
-  });
-
-  const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 });
-
-  console.log("uploadUrl", uploadUrl);
-
-  return uploadUrl;
-}
 
 
 export async function getNote({
@@ -63,7 +34,6 @@ export async function getNote({
       id: result.sk,
       title: result.title,
       body: result.body,
-      videoUrl: result.videoUrl,
     };
   }
   return null;

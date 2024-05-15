@@ -1,13 +1,11 @@
 import arc from "@architect/functions";
 import { createId } from "@paralleldrive/cuid2";
 
-
+import type { Note } from "./note.server";
 import { deleteNote } from "./note.server";
-
+import type { User } from "./user.server";
 import { updateUser } from "./user.server";
 
-import type { Note } from "./note.server";
-import type { User } from "./user.server";
 
 
 export interface Project {

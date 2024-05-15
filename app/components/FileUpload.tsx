@@ -1,9 +1,9 @@
+import { redirect } from "@remix-run/node";
+import axios from "axios";
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone-esm";
-import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import { redirect } from "@remix-run/node";
 
 type FileWithPreview = File & { preview: string };
 
@@ -97,10 +97,11 @@ export default function FileUpload() {
 
       toast.success(`${file.name} uploaded successfully!`);
 
-      redirect(`/notes/${file.name}`);
+      // redirect(`/notes/${file.name}`);
 
 
     } catch (error) {
+      console.log("Error uploading file:", error);
       toast.error(`Failed to upload ${file.name}`);
     } finally {
       setActiveUploads(prev => prev - 1);

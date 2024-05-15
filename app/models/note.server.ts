@@ -1,7 +1,8 @@
 import arc from "@architect/functions";
 import { createId } from "@paralleldrive/cuid2";
 
-import type { User } from "./user.server";
+import { User } from "./user.server";
+
 
 export interface Note {
   id: ReturnType<typeof createId>;
@@ -17,6 +18,7 @@ interface NoteItem {
 
 const skToId = (sk: NoteItem["sk"]): Note["id"] => sk.replace(/^note#/, "");
 const idToSk = (id: Note["id"]): NoteItem["sk"] => `note#${id}`;
+
 
 export async function getNote({
   id,
@@ -58,24 +60,39 @@ export async function createNote({
   body,
   title,
   userId,
-}: Pick<Note, "body" | "title" | "userId">): Promise<Note> {
+  // videoFile,
+}: Pick<Note, "body" | "title" | "userId"> & { videoFile?: Blob }) { // Use Blob here
   const db = await arc.tables();
+
+  // let videoUploadResult;
+  // if (videoFile) {
+  //   const videoId = createId();
+  //   videoUploadResult = await uploadVideo({ userId, id: videoId, fileBuffer: videoFile });
+  // }
 
   const result = await db.note.put({
     pk: userId,
     sk: idToSk(createId()),
     title: title,
     body: body,
+    // videoUrl: videoUploadResult?.Location, // Assuming the S3 result has a `Location` field
   });
+
   return {
     id: skToId(result.sk),
     userId: result.pk,
     title: result.title,
     body: result.body,
+    videoUrl: result.videoUrl,
   };
 }
 
+
+
 export async function deleteNote({ id, userId }: Pick<Note, "id" | "userId">) {
   const db = await arc.tables();
+
+  
+
   return db.note.delete({ pk: userId, sk: idToSk(id) });
 }

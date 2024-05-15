@@ -16,8 +16,8 @@ export default function NotesPage() {
   const data = useLoaderData<typeof loader>();
   const user = useUser();
 
-  console.log("data", data);
-  console.log("user", user);
+  // console.log("data", data);
+  // console.log("user", user);
 
   return (
     <div className="flex h-full min-h-screen flex-col">
@@ -77,11 +77,6 @@ export default function NotesPage() {
 function Layout({ children }: { children: ReactNode }) {
   return (
     <>
-      <nav className="px-10 pt-5">
-        <Link to="/" prefetch="intent" className="text-2xl font-semibold">
-          CLICK ME
-        </Link>
-      </nav>
       <main>{children}</main>
     </>
   );

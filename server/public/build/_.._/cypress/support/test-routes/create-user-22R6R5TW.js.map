@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../../cypress/support/test-routes/create-user.ts"],
+  "sourcesContent": ["import type { ActionFunctionArgs } from \"@remix-run/node\";\nimport { redirect } from \"@remix-run/node\";\n\nimport { createUser } from \"~/models/user.server\";\nimport { createUserSession } from \"~/session.server\";\n\nexport const action = async ({ request }: ActionFunctionArgs) => {\n  if (process.env.NODE_ENV === \"production\") {\n    console.error(\n      \"\uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 test routes should not be enabled in production \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8 \uD83D\uDEA8\",\n    );\n    // test routes should not be enabled in production or without\n    // enable test routes... Just in case this somehow slips through\n    // we'll redirect :)\n    return redirect(\"https://www.youtube.com/watch?v=dQw4w9WgXcQ\");\n  }\n\n  const { email } = await request.json();\n  if (!email) {\n    throw new Error(\"email required for login\");\n  }\n  if (!email.endsWith(\"@example.com\")) {\n    throw new Error(\"All test emails must end in @example.com\");\n  }\n\n  const user = await createUser(email, \"myreallystrongpassword\");\n\n  return createUserSession({\n    redirectTo: \"/\",\n    remember: true,\n    request,\n    userId: user.id,\n  });\n};\n\nexport default null;\n"],
+  "mappings": ";;;;;;;;AACA,kBAAyB;AAkCzB,IAAO,sBAAQ;",
+  "names": []
+}

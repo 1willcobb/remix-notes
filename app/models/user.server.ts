@@ -2,154 +2,140 @@ import arc from "@architect/functions";
 import bcrypt from "bcryptjs";
 import invariant from "tiny-invariant";
 
-export interface User {
-  id: `email#${string}`;
-  email: string;
-  noteIds?: string[]; // Store IDs of associated notes
-  projectIds?: string[]; // Store IDs of associated projects
+import { User, Password } from "./types.server";
+
+function validateUser(user: User): void {
+  if (!/^USER#/.test(user.pk)) {
+    throw new Error("Invalid User pk");
+  }
+  if (user.sk !== 'PROFILE') {
+    throw new Error("Invalid User sk");
+  }
+  if (!user.email.includes('@')) {
+    throw new Error("Invalid User Email");
+  }
 }
 
-export interface Password {
-  password: string;
-}
-
-export async function getUserById(id: User["id"]): Promise<User | null> {
+export async function getUserById(id: string): Promise<User | null> {
   const db = await arc.tables();
-  const result = await db.user.query({
-    KeyConditionExpression: "pk = :pk",
-    ExpressionAttributeValues: { ":pk": id },
+  const result = await db.singleTable.query({
+    KeyConditionExpression: "pk = :pk AND sk = :sk",
+    ExpressionAttributeValues: { ":pk": `USER#${id}`, ":sk": "PROFILE" },
   });
 
   const [record] = result.Items;
   if (record) {
-    const user = { id: record.pk, email: record.email, noteIds: [], projectIds: []};
-    if (record.noteIds) {
-      user.noteIds = record.noteIds;
-    }
-    if (record.projectIds) {
-      user.projectIds = record.projectIds;
-    }
+    const user: User = {
+      pk: record.pk,
+      sk: record.sk,
+      name: record.name,
+      email: record.email,
+    };
+    validateUser(user);
     return user;
   }
   return null;
 }
 
-export async function getUserByEmail(email: User["email"]) {
-  return getUserById(`email#${email}`);
+export async function getUserByEmail(email: string) {
+  return getUserById(`USER#${email}`);
 }
 
-async function getUserPasswordByEmail(email: User["email"]) {
+async function getUserPasswordByEmail(email: string) {
   const db = await arc.tables();
   const result = await db.password.query({
-    KeyConditionExpression: "pk = :pk",
-    ExpressionAttributeValues: { ":pk": `email#${email}` },
+    KeyConditionExpression: "pk = :pk AND sk = :sk",
+    ExpressionAttributeValues: { ":pk": `USER#${email}`, ":sk": "PASSWORD" },
   });
 
   const [record] = result.Items;
-
   if (record) return { hash: record.password };
   return null;
 }
 
 export async function createUser(
-  email: User["email"],
-  password: Password["password"],
+  email: string,
+  password: string,
 ) {
   const hashedPassword = await bcrypt.hash(password, 10);
   const db = await arc.tables();
-  await db.password.put({
-    pk: `email#${email}`,
+
+  console.log("Creating user", email);
+  const user: User = {
+    pk: `USER#${email}`,
+    sk: "PROFILE",
+    name: "", // Initialize with empty name
+    email: email,
+  };
+  validateUser(user);
+
+  const passwordRecord: Password = {
+    pk: `USER#${email}`,
+    sk: "PASSWORD",
     password: hashedPassword,
-  });
+  };
 
-  await db.user.put({
-    pk: `email#${email}`,
-    email,
-  });
+  console.log("Putting user", user);
+  console.log("putting password", passwordRecord);  
 
-  const user = await getUserByEmail(email);
-  invariant(user, `User not found after being created. This should not happen`);
+  await db.singleTable.put({ Item: user });
+  await db.password.put({ Item: passwordRecord });
 
-  return user;
+  const createdUser = await getUserByEmail(email);
+  invariant(createdUser, `User not found after being created. This should not happen`);
+
+  return createdUser;
 }
 
-export async function updateUser(userEmail: User["email"], updates: Partial<User>) {
+export async function updateUser(userEmail: string, updates: Partial<User>) {
   const db = await arc.tables();
-  const { email, noteIds, projectIds, ...rest } = updates; // Extract email, noteIds, and projectIds from updates
+  const { email, ...rest } = updates;
 
-  // Validate that the user exists
   const existingUser = await getUserByEmail(userEmail);
   if (!existingUser) {
     throw new Error("User not found");
   }
 
-  // Construct the update expression
-  let updateExpression = "";
+  let updateExpression = "SET ";
   const expressionAttributeValues: any = {};
 
-  // If there are other attributes to update, construct the SET expression for them
   if (Object.keys(rest).length > 0) {
-    updateExpression = Object.keys(rest).map(key => `SET ${key} = :${key}`).join(", ");
+    updateExpression += Object.keys(rest).map(key => `${key} = :${key}`).join(", ");
     Object.entries(rest).forEach(([key, value]) => {
       expressionAttributeValues[`:${key}`] = value;
     });
   }
 
-  // If a new email needs to be set, add it to the update expression
   if (email) {
-    updateExpression += (updateExpression ? ", " : "SET") + "email = :email";
+    updateExpression += (updateExpression ? ", " : "") + "email = :email";
     expressionAttributeValues[":email"] = email;
   }
 
-  // If new projectIds or noteIds need to be pushed, add them to the update expression
-  if ((projectIds && projectIds.length > 0) || (noteIds && noteIds.length > 0)) {
-    // Combine projectIds and noteIds into a single block
-    updateExpression += (updateExpression ? ", " : "SET") + "projectIds = list_append(if_not_exists(projectIds, :emptyList), :projectIds), noteIds = list_append(if_not_exists(noteIds, :emptyList), :noteIds)";
-    expressionAttributeValues[":projectIds"] = projectIds || [];
-    expressionAttributeValues[":noteIds"] = noteIds || [];
-    expressionAttributeValues[":emptyList"] = [];
-  }
-
-  // Perform the update if there are attributes to update
   if (updateExpression) {
-    await db.user.update({
-      Key: { pk: `email#${userEmail}` },
+    await db.singleTable.update({
+      Key: { pk: `user#${userEmail}`, sk: "profile" },
       UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionAttributeValues,
     });
   }
 }
 
-export async function deleteUser(email: User["email"]) {
+export async function deleteUser(email: string) {
   const db = await arc.tables();
   const user = await getUserByEmail(email);
   if (!user) {
     throw new Error("User not found");
   }
 
-  // Delete associated notes
-  if (user.noteIds) {
-    for (const noteId of user.noteIds) {
-      await db.note.delete({ pk: `note#${noteId}` });
-    }
-  }
-
-  if (user.projectIds) {
-    for (const projectId of user.projectIds) {
-      await db.project.delete({ pk: `project#${projectId}` });
-    }
-  }
-
-  // Delete user and password
   await Promise.all([
-    db.password.delete({ pk: `email#${email}` }),
-    db.user.delete({ pk: `email#${email}` }),
+    db.singleTable.delete({ Key: { pk: `user#${email}`, sk: "profile" } }),
+    db.password.delete({ Key: { pk: `user#${email}`, sk: "password" } }),
   ]);
 }
 
 export async function verifyLogin(
-  email: User["email"],
-  password: Password["password"],
+  email: string,
+  password: string,
 ) {
   const userPassword = await getUserPasswordByEmail(email);
 
@@ -163,22 +149,4 @@ export async function verifyLogin(
   }
 
   return getUserByEmail(email);
-}
-
-export async function addNoteToUser(userEmail: User["email"], noteId: string) {
-  const db = await arc.tables();
-  await db.user.update({
-    Key: { pk: `email#${userEmail}` },
-    UpdateExpression: "ADD noteIds :noteId",
-    ExpressionAttributeValues: { ":noteId": [noteId] },
-  });
-}
-
-export async function removeNoteFromUser(userEmail: User["email"], noteId: string) {
-  const db = await arc.tables();
-  await db.user.update({
-    Key: { pk: `email#${userEmail}` },
-    UpdateExpression: "DELETE noteIds :noteId",
-    ExpressionAttributeValues: { ":noteId": [noteId] },
-  });
 }

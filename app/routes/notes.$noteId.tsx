@@ -6,7 +6,7 @@ import {
   useRouteError,
 } from "@remix-run/react";
 
-import { requireUserId } from "~/session.server";
+import { requireUserId } from "../session.server";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const userId = await requireUserId(request);

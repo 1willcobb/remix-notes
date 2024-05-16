@@ -7,6 +7,8 @@ import 'react-toastify/dist/ReactToastify.css';
 
 type FileWithPreview = File & { preview: string };
 
+
+
 export default function FileUpload() {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [uploadQueue, setUploadQueue] = useState<FileWithPreview[]>([]);

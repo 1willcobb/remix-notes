@@ -7,9 +7,9 @@ import { json, redirect } from "@remix-run/node";
 import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
-import { verifyLogin } from "~/models/user.server";
-import { createUserSession, getUserId } from "~/session.server";
-import { safeRedirect, validateEmail } from "~/utils";
+import { verifyLogin } from "../models/user.server";
+import { createUserSession, getUserId } from "../session.server";
+import { safeRedirect, validateEmail } from "../utils";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await getUserId(request);
@@ -18,6 +18,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+  console.log("action");  
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
@@ -58,7 +59,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     redirectTo,
     remember: remember === "on" ? true : false,
     request,
-    userId: user.id,
+    userId: user.pk,
   });
 };
 
@@ -70,6 +71,7 @@ export default function LoginPage() {
   const actionData = useActionData<typeof action>();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     if (actionData?.errors?.email) {

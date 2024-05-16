@@ -24,12 +24,10 @@ bucket my-remix-test-bucket
 
 
 @tables
-user
-  pk *String
-
 password
   pk *String # userId
+  sk **String
 
-note
-  pk *String  # userId
-  sk **String # noteId
+singleTable
+  pk *String  
+  sk **String
